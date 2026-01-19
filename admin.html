@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Catálogo Digital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin-modern.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <button class="back-btn" id="backBtn" aria-label="Voltar">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1 class="header-title">Painel Administrativo</h1>
+        <div style="width: 44px;"></div>
+    </header>
+
+    <!-- Admin Content -->
+    <main class="admin-content">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="products">
+                <i class="fas fa-box"></i>
+                Produtos
+            </button>
+            <button class="tab-btn" data-tab="categories">
+                <i class="fas fa-tags"></i>
+                Categorias
+            </button>
+            <button class="tab-btn" data-tab="segments">
+                <i class="fas fa-layer-group"></i>
+                Segmentação
+            </button>
+            <button class="tab-btn" data-tab="import">
+                <i class="fas fa-file-upload"></i>
+                Importar
+            </button>
+            <button class="tab-btn" data-tab="splash">
+                <i class="fas fa-desktop"></i>
+                Tela Inicial
+            </button>
+            <button class="tab-btn" data-tab="users">
+                <i class="fas fa-users"></i>
+                Usuários
+            </button>
+        </div>
+
+        <!-- Products Tab -->
+        <div class="tab-content active" id="products-tab">
+            <div class="section-header">
+                <h2><i class="fas fa-box"></i> Gerenciar Produtos</h2>
+                <button class="btn btn-primary" id="addProductBtn">
+                    <i class="fas fa-plus"></i>
+                    Novo Produto
+                </button>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="filter-group">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="productSearchInput" placeholder="Buscar produto por código ou descrição...">
+                </div>
+                <select id="categoryFilter" class="form-select" style="max-width: 300px;">
+                    <option value="">Todas as categorias</option>
+                </select>
+            </div>
+
+            <!-- Products Table -->
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Imagem</th>
+                            <th>Código</th>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        <!-- Products will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="productsPagination"></div>
+        </div>
+
+        <!-- Categories Tab -->
+        <div class="tab-content" id="categories-tab">
+            <div class="section-header">
+                <h2><i class="fas fa-tags"></i> Gerenciar Categorias</h2>
+                <button class="btn btn-primary" id="addCategoryBtn">
+                    <i class="fas fa-plus"></i>
+                    Nova Categoria
+                </button>
+            </div>
+
+            <!-- Categories Grid -->
+            <div class="categories-grid" id="categoriesGrid">
+                <!-- Categories will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Import Tab -->
+        <div class="tab-content" id="import-tab">
+            <div class="section-header">
+                <h2><i class="fas fa-file-import"></i> Importar Produtos</h2>
+            </div>
+
+            <div class="import-container">
+                <div class="import-card">
+                    <div class="import-card-header">
+                        <div class="import-card-icon">
+                            <i class="fas fa-file-excel"></i>
+                        </div>
+                        <div>
+                            <h3 class="import-card-title">Upload de Planilha</h3>
+                            <p class="import-card-description">Faça upload de um arquivo <strong>Excel (.xlsx)</strong>, <strong>CSV (.csv)</strong> ou <strong>TSV (.tsv)</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="import-instructions">
+                        <h4><i class="fas fa-list-check"></i> Formato da Planilha</h4>
+                        <ul>
+                            <li><strong>Colunas obrigatórias</strong>: <code>codigo</code> ou <code>code</code> E <code>descricao</code> ou <code>description</code></li>
+                            <li><strong>Primeira linha</strong>: Deve conter os nomes das colunas (cabeçalho)</li>
+                            <li><strong>Linhas seguintes</strong>: Dados dos produtos</li>
+                            <li><strong>Categorização</strong>: Automática com base em palavras-chave na descrição</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <p class="upload-text">Arraste o arquivo aqui ou clique para selecionar</p>
+                        <small class="upload-hint">Formatos aceitos: XLSX, CSV, TSV (até 10MB)</small>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.tsv,.txt" hidden>
+                    </div>
+
+                    <button class="btn btn-primary" id="uploadBtn" disabled style="width: 100%; margin-top: var(--space-4);">
+                        <i class="fas fa-upload"></i>
+                        Processar Planilha
+                    </button>
+                </div>
+
+                <!-- Import Preview -->
+                <div class="import-card import-preview" id="importPreview" style="display: none;">
+                    <div class="import-preview-header">
+                        <h3 class="import-preview-title"><i class="fas fa-eye"></i> Prévia da Importação</h3>
+                    </div>
+                    
+                    <div class="import-stats">
+                        <div class="import-stat">
+                            <div class="import-stat-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="import-stat-info">
+                                <span class="import-stat-label">Total</span>
+                                <span class="import-stat-value" id="previewTotal">0</span>
+                            </div>
+                        </div>
+                        <div class="import-stat">
+                            <div class="import-stat-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="import-stat-info">
+                                <span class="import-stat-label">Novos</span>
+                                <span class="import-stat-value" id="previewNew">0</span>
+                            </div>
+                        </div>
+                        <div class="import-stat">
+                            <div class="import-stat-icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="import-stat-info">
+                                <span class="import-stat-label">Atualizações</span>
+                                <span class="import-stat-value" id="previewUpdate">0</span>
+                            </div>
+                        </div>
+                    </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="previewNew">0</div>
+                            <div class="stat-label">Novos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="previewUpdate">0</div>
+                            <div class="stat-label">Atualizações</div>
+                        </div>
+                    </div>
+                    <div class="preview-table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria Sugerida</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="previewTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Splash Screen Tab -->
+        <div class="tab-content" id="splash-tab">
+            <div class="section-header">
+                <h2><i class="fas fa-desktop"></i> Configurar Tela Inicial</h2>
+            </div>
+
+            <div class="splash-config-container">
+                <div class="splash-config-card">
+                    <form id="splashForm">
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="splashEnabled">
+                                <span>Exibir Tela Inicial</span>
+                            </label>
+                            <small class="form-hint">Quando ativado, a tela inicial será exibida ao acessar o catálogo</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Logo da Tela Inicial</label>
+                            <small class="form-hint">Formato: PNG com transparência (recomendado: 200x200px)</small>
+                            <div class="logo-upload-container">
+                                <input type="file" id="splashLogoFile" accept="image/png,.png" style="display: none;">
+                                <div class="logo-upload-area" id="splashLogoUploadArea">
+                                    <i class="fas fa-image upload-icon"></i>
+                                    <p class="upload-text">Clique ou arraste um logo PNG</p>
+                                </div>
+                                <div class="logo-preview" id="splashLogoPreview" style="display: none;">
+                                    <img id="splashLogoPreviewImg" alt="Logo Preview">
+                                    <div class="image-actions">
+                                        <button type="button" class="btn btn-primary" id="replaceSplashLogoBtn">
+                                            <i class="fas fa-sync-alt"></i>
+                                            Substituir
+                                        </button>
+                                        <button type="button" class="btn btn-danger" id="removeSplashLogoBtn">
+                                            <i class="fas fa-times"></i>
+                                            Remover
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="splashLogoData">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required" for="splashMessage">Mensagem Interativa</label>
+                            <textarea class="form-textarea" id="splashMessage" rows="3" required placeholder="Digite a mensagem que aparecerá na tela inicial..."></textarea>
+                            <small class="form-hint">Esta é a mensagem principal que os visitantes verão</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required" for="splashButtonText">Texto do Botão</label>
+                            <input type="text" class="form-input" id="splashButtonText" required placeholder="Ex: Ver Produtos, Entrar, Começar">
+                            <small class="form-hint">Texto que aparecerá no botão de ação</small>
+                        </div>
+
+                        <div class="splash-preview-section">
+                            <h3><i class="fas fa-eye"></i> Pré-visualização</h3>
+                            <div class="splash-preview" id="splashPreview">
+                                <div class="splash-preview-content">
+                                    <div class="splash-preview-logo">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                    <h2>Catálogo Digital</h2>
+                                    <p id="previewMessage">Mensagem aparecerá aqui...</p>
+                                    <button class="preview-button" id="previewButton">Ver Produtos</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i>
+                                Salvar Configurações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Segments Tab -->
+        <div class="tab-content" id="segments-tab">
+            <div class="section-header">
+                <h2><i class="fas fa-layer-group"></i> Gerenciar Segmentação</h2>
+                <button class="btn btn-primary" id="addSegmentBtn">
+                    <i class="fas fa-plus"></i>
+                    Novo Segmento
+                </button>
+            </div>
+
+            <div class="segments-grid" id="segmentsGrid">
+                <!-- Segments will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div class="tab-content" id="users-tab">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Gerenciar Usuários</h2>
+                <button class="btn btn-primary" id="addUserBtn">
+                    <i class="fas fa-plus"></i>
+                    Novo Usuário
+                </button>
+            </div>
+
+            <div class="users-grid" id="usersGrid">
+                <!-- Users will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Product Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="productModalTitle"><i class="fas fa-box"></i> Novo Produto</h2>
+                <button class="modal-close" id="closeProductModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="productForm" class="modal-body">
+                <input type="hidden" id="productId">
+                
+                <div class="form-group">
+                    <label class="form-label required" for="productCode">Código do Produto</label>
+                    <input type="text" class="form-input" id="productCode" placeholder="Ex: P001" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required" for="productDescription">Descrição</label>
+                    <textarea class="form-textarea" id="productDescription" rows="3" placeholder="Descreva o produto..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required" for="productCategory">Categoria</label>
+                    <select class="form-select" id="productCategory" required>
+                        <option value="">Selecione uma categoria</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Imagem do Produto</label>
+                    <small class="form-hint">Formato: JPG/JPEG até 5MB (recomendado: 1000x1000px)</small>
+                    <div class="image-upload-container">
+                        <input type="file" id="productImageFile" accept="image/jpeg,image/jpg,.jpg,.jpeg" style="display: none;">
+                        <div class="upload-area" id="productUploadArea">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <p class="upload-text">Clique ou arraste uma imagem JPG</p>
+                        </div>
+                        <div class="image-preview" id="imagePreview" style="display: none;">
+                            <img id="previewImg" alt="Preview">
+                            <div class="image-actions">
+                                <button type="button" class="btn btn-primary" id="replaceImageBtn">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Substituir
+                                </button>
+                                <button type="button" class="btn btn-danger" id="removeImageBtn">
+                                    <i class="fas fa-times"></i>
+                                    Remover
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="productImage">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelProductBtn">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="deleteProductBtn" style="display: none;">
+                        <i class="fas fa-trash"></i>
+                        Excluir
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i>
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="categoryModalTitle"><i class="fas fa-tags"></i> Nova Categoria</h2>
+                <button class="modal-close" id="closeCategoryModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="categoryForm" class="modal-body">
+                <input type="hidden" id="categoryId">
+                
+                <div class="form-group">
+                    <label class="form-label required" for="categoryName">Nome da Categoria</label>
+                    <input type="text" class="form-input" id="categoryName" required placeholder="Ex: Descartáveis">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required" for="categoryKeywords">Palavras-chave</label>
+                    <input type="text" class="form-input" id="categoryKeywords" placeholder="Ex: copo, copos, descartável">
+                    <small class="form-hint">Separe as palavras-chave por vírgula</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="categoryOrder">Ordem de Exibição</label>
+                    <input type="number" class="form-input" id="categoryOrder" value="1" min="1" placeholder="1">
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" id="categoryOwnBrand">
+                        <span>Marca Própria</span>
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelCategoryBtn">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="deleteCategoryBtn" style="display: none;">
+                        <i class="fas fa-trash"></i>
+                        Excluir
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i>
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Segment Modal -->
+    <div class="modal" id="segmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="segmentModalTitle"><i class="fas fa-layer-group"></i> Novo Segmento</h2>
+                <button class="modal-close" id="closeSegmentModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="segmentForm" class="modal-body">
+                <input type="hidden" id="segmentId">
+                
+                <div class="form-group">
+                    <label class="form-label required" for="segmentName">Nome do Segmento</label>
+                    <input type="text" class="form-input" id="segmentName" required placeholder="Ex: Merceria, Hospital">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="segmentDescription">Descrição</label>
+                    <textarea class="form-textarea" id="segmentDescription" rows="2" placeholder="Descreva o tipo de negócio..."></textarea></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="segmentIcon">Ícone (Font Awesome)</label>
+                    <input type="text" class="form-input" id="segmentIcon" placeholder="fa-store" value="fa-store">
+                    <small class="form-hint">Código do ícone Font Awesome (ex: fa-store, fa-hospital, fa-utensils)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="segmentColor">Cor</label>
+                    <input type="color" class="form-input" id="segmentColor" value="#3B82F6">
+                    <small class="form-hint">Cor de destaque do segmento</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="segmentOrder">Ordem de Exibição</label>
+                    <input type="number" class="form-input" id="segmentOrder" value="1" min="1">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelSegmentBtn">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="deleteSegmentBtn" style="display: none;">
+                        <i class="fas fa-trash"></i>
+                        Excluir
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i>
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Segment Products Modal -->
+    <div class="modal" id="segmentProductsModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="segmentProductsTitle">Gerenciar Produtos do Segmento</h2>
+                <button class="modal-close" id="closeSegmentProductsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="currentSegmentId">
+                
+                <div class="segment-products-container">
+                    <div class="segment-products-section">
+                        <h3><i class="fas fa-box"></i> Produtos Disponíveis</h3>
+                        <input type="text" id="availableProductsSearch" class="search-input" placeholder="Buscar produtos...">
+                        <div class="products-list" id="availableProductsList">
+                            <!-- Available products will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="segment-products-section">
+                        <h3><i class="fas fa-check-circle"></i> Produtos no Segmento</h3>
+                        <input type="text" id="segmentProductsSearch" class="search-input" placeholder="Buscar produtos...">
+                        <div class="products-list" id="segmentProductsList">
+                            <!-- Segment products will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="userModalTitle"><i class="fas fa-user"></i> Novo Usuário</h2>
+                <button class="modal-close" id="closeUserModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="userForm" class="modal-body">
+                <input type="hidden" id="userId">
+                
+                <div class="form-group">
+                    <label class="form-label required" for="userUsername">Usuário</label>
+                    <input type="text" class="form-input" id="userUsername" required placeholder="Nome de usuário para login">
+                    <small class="form-hint">Use apenas letras, números e underscore</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required" for="userPassword">Senha</label>
+                    <input type="password" class="form-input" id="userPassword" required placeholder="Senha de acesso">
+                    <small class="form-hint">Mínimo 6 caracteres</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required" for="userFullName">Nome Completo</label>
+                    <input type="text" class="form-input" id="userFullName" required placeholder="Nome completo do usuário">
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" id="userActive" checked>
+                        <span>Usuário Ativo</span>
+                    </label>
+                    <small class="form-hint">Desmarque para desativar o acesso temporariamente</small>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelUserBtn">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="deleteUserBtn" style="display: none;">
+                        <i class="fas fa-trash"></i>
+                        Excluir
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i>
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Info & Logout -->
+    <div class="user-info" id="userInfo" style="position: fixed; top: 1rem; right: 1rem; background: var(--white); padding: 0.75rem 1rem; border-radius: 12px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 1rem; z-index: 95;">
+        <div style="text-align: right;">
+            <div style="font-weight: 700; font-size: 0.875rem; color: var(--royal-blue);" id="userName"></div>
+            <div style="font-size: 0.75rem; color: var(--gray-medium);">Administrador</div>
+        </div>
+        <button onclick="logout()" style="background: #EF4444; color: var(--white); border: none; padding: 0.5rem 0.75rem; border-radius: 8px; cursor: pointer; font-size: 0.875rem; font-weight: 700; transition: all 0.3s ease;" onmouseover="this.style.background='#DC2626'" onmouseout="this.style.background='#EF4444'">
+            <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+    </div>
+
+    <!-- Help Button (Fixed) -->
+    <button class="help-btn" onclick="window.location.href='guia.html'" title="Guia Rápido" style="position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; background: var(--white); color: var(--royal-blue); border: 2px solid var(--royal-blue); border-radius: 50%; font-size: 1.5rem; cursor: pointer; box-shadow: var(--shadow-lg); transition: all 0.3s ease; z-index: 90;">
+        <i class="fas fa-question"></i>
+    </button>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="confirmModalTitle">
+                    <i class="fas fa-exclamation-triangle" style="color: var(--warning-500);"></i>
+                    Confirmar Ação
+                </h2>
+                <button class="modal-close" id="closeConfirmModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage" style="font-size: var(--font-size-base); color: var(--neutral-700); line-height: 1.6; margin: 0;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="confirmCancelBtn">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmOkBtn">
+                    <i class="fas fa-check"></i>
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
